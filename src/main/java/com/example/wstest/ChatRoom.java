@@ -1,23 +1,23 @@
 package com.example.wstest;
 
 import com.example.wstest.dto.ChatMessage;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Getter
 public class ChatRoom {
     private String roomId;
     private String name;
-
-    @JsonIgnore
     private Set<WebSocketSession> sessions = new HashSet<>();
 
-    @Builder //객체 생성에서 주입하는 것에 대한 방식 - Builder Pattern
+    @Builder
     public ChatRoom(String roomId, String name) {
         this.roomId = roomId;
         this.name = name;
@@ -25,18 +25,20 @@ public class ChatRoom {
 
     public void handlerActions(WebSocketSession session, ChatMessage chatMessage, ChatService chatService) {
         if (chatMessage.getType().equals(ChatMessage.MessageType.ENTER)) {
-            //방에 처음 들어왔을때
             sessions.add(session);
             chatMessage.setMessage(chatMessage.getSender() + "님이 입장했습니다.");
         }
-
         sendMessage(chatMessage, chatService);
-        //메세지 전송
     }
 
-    private <T> void sendMessage(T message, ChatService chatService) {
-        sessions.parallelStream()
-                .forEach(session -> chatService.sendMessage(session, message));
-        //채팅방에 입장해 있는 모든 클라이언트에게 메세지 전송
+    public <T> void sendMessage(T message, ChatService chatService) {
+        sessions.parallelStream().forEach(session -> {
+            try {
+                chatService.sendMessage(session, message);
+            } catch (IOException e) {
+                // Remove sessions that are no longer connected
+                sessions.remove(session);
+            }
+        });
     }
 }
