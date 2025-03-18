@@ -1,4 +1,4 @@
-package com.example.wstest;
+package com.example.wstest.chat;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

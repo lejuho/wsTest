@@ -1,6 +1,7 @@
 package com.example.wstest;
 
-import com.example.wstest.dto.ChatMessage;
+import com.example.wstest.chat.ChatService;
+import com.example.wstest.chat.dto.ChatMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,8 @@
 package com.example.wstest;
 
-import com.example.wstest.dto.ChatMessage;
+import com.example.wstest.chat.ChatRoom;
+import com.example.wstest.chat.ChatService;
+import com.example.wstest.chat.dto.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +46,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 break;
 
             case READ_RECEIPT:
-                // 읽음 상태 업데이트
+                // 필요한 경우 String을 UUID로 변환
                 chatService.markMessageAsRead(chatMessage.getMessageId(), chatMessage.getSender());
                 break;
 

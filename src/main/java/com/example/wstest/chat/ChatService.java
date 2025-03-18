@@ -1,6 +1,6 @@
-package com.example.wstest;
+package com.example.wstest.chat;
 
-import com.example.wstest.dto.ChatMessage;
+import com.example.wstest.chat.dto.ChatMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -26,6 +26,7 @@ public class ChatService {
     private final ChatRoomRepository chatRoomRepository;
     private final RedisTemplate<String, Object> redisTemplate;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final ChatMessageRepository chatMessageRepository;
     private Map<String, ChatRoom> chatRooms;
     // 메시지 ID로 메시지를 조회하기 위한 맵
     private Map<String, ChatMessage> messageCache = new ConcurrentHashMap<>();
@@ -110,16 +111,14 @@ public class ChatService {
 
     // 메시지 읽음 상태 업데이트
     public void markMessageAsRead(String messageId, String userId) {
-        ChatMessage message = messageCache.get(messageId);
-        if (message != null) {
-            message.markAsReadBy(userId);
+        // 저장소가 UUID를 기대하는 경우 String을 UUID로 변환
+        UUID messageUuid = UUID.fromString(messageId);
 
-            // Redis에도 업데이트
-            updateMessageInRedis(message);
+        ChatMessageEntity message = chatMessageRepository.findById(messageUuid)
+                .orElseThrow(() -> new RuntimeException("Message not found"));
 
-            // 읽음 상태 변경 알림 전송
-            sendReadReceiptNotification(message, userId);
-        }
+        message.setRead(true);
+        chatMessageRepository.save(message);
     }
 
     // Redis에 메시지 업데이트

@@ -1,4 +1,4 @@
-package com.example.wstest;
+package com.example.wstest.chat;
 
 import jakarta.persistence.*;
 import lombok.*;

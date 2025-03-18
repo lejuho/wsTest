@@ -1,6 +1,6 @@
-package com.example.wstest;
+package com.example.wstest.chat;
 
-import com.example.wstest.dto.ChatMessage;
+import com.example.wstest.chat.dto.ChatMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class ChatController {
     // 메시지 읽음 상태 업데이트 엔드포인트
     @PostMapping("/messages/{messageId}/read")
     public ResponseEntity<?> markMessageAsRead(
-            @PathVariable String messageId,
+            @PathVariable String messageId,  // UUID에서 String으로 변경
             @RequestBody Map<String, String> payload) {
 
         String userId = payload.get("userId");

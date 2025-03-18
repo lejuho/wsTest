@@ -1,4 +1,4 @@
-package com.example.wstest.dto;
+package com.example.wstest.chat.dto;
 
 import lombok.Getter;
 import lombok.Setter;

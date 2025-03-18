@@ -1,6 +1,6 @@
-package com.example.wstest;
+package com.example.wstest.chat;
 
-import com.example.wstest.dto.ChatMessage;
+import com.example.wstest.chat.dto.ChatMessage;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
