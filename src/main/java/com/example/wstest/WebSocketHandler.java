@@ -6,10 +6,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.util.Date;
 import java.util.Map;
 
 @Slf4j
@@ -25,26 +27,71 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         log.info("Received message: {}", payload);
 
-        ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
+        try {
+            ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
 
-        // Get the authenticated user from session attributes
-        Map<String, Object> attributes = session.getAttributes();
-        UserDetails userDetails = (UserDetails) attributes.get("user");
+            // 인증된 사용자 정보 가져오기
+            Map<String, Object> attributes = session.getAttributes();
+            UserDetails userDetails = (UserDetails) attributes.get("user");
 
-        // Set the sender as the authenticated username
-        if (userDetails != null) {
-            chatMessage.setSender(userDetails.getUsername());
-            log.info("Authenticated user: {}", userDetails.getUsername());
-        } else {
-            log.warn("No authenticated user found in session");
-            return; // Don't process messages from unauthenticated users
+            if (userDetails != null) {
+                chatMessage.setSender(userDetails.getUsername());
+                log.info("Authenticated user: {}", userDetails.getUsername());
+
+                // 타임스탬프가 없으면 현재 시간 설정
+                if (chatMessage.getTimestamp() == null) {
+                    chatMessage.setTimestamp(new Date());
+                }
+
+                ChatRoom chatRoom = chatService.findRoomById(chatMessage.getRoomId());
+                if (chatRoom != null) {
+                    chatRoom.handlerActions(session, chatMessage, chatService);
+                } else {
+                    log.warn("Chat room not found: {}", chatMessage.getRoomId());
+                    sendErrorMessage(session, "존재하지 않는 채팅방입니다.");
+                }
+            } else {
+                log.warn("No authenticated user found in session");
+                sendErrorMessage(session, "인증된 사용자가 아닙니다.");
+            }
+        } catch (Exception e) {
+            log.error("메시지 처리 중 오류 발생: {}", e.getMessage());
+            sendErrorMessage(session, "메시지 처리 중 오류가 발생했습니다.");
         }
+    }
 
-        ChatRoom chatRoom = chatService.findRoomById(chatMessage.getRoomId());
-        if (chatRoom != null) {
-            chatRoom.handlerActions(session, chatMessage, chatService);
-        } else {
-            log.warn("Chat room not found: {}", chatMessage.getRoomId());
+    private void sendErrorMessage(WebSocketSession session, String errorMessage) {
+        try {
+            ChatMessage errorChatMessage = new ChatMessage();
+            errorChatMessage.setType(ChatMessage.MessageType.TALK);
+            errorChatMessage.setSender("System");
+            errorChatMessage.setMessage(errorMessage);
+            errorChatMessage.setTimestamp(new Date());
+
+            String payload = objectMapper.writeValueAsString(errorChatMessage);
+            session.sendMessage(new TextMessage(payload));
+        } catch (Exception e) {
+            log.error("에러 메시지 전송 실패: {}", e.getMessage());
         }
+    }
+
+    @Override
+    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+        log.info("WebSocket connection established: {}", session.getId());
+    }
+
+    @Override
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
+        log.info("WebSocket connection closed: {}, status: {}", session.getId(), status);
+
+        // 모든 채팅방에서 세션 제거
+        for (ChatRoom room : chatService.findAllRoom()) {
+            room.getSessions().remove(session);
+        }
+    }
+
+    @Override
+    public void handleTransportError(WebSocketSession session, Throwable exception) throws Exception {
+        log.error("WebSocket transport error: {}, error: {}", session.getId(), exception.getMessage());
     }
 }
