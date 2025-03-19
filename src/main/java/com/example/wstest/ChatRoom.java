@@ -1,6 +1,7 @@
 package com.example.wstest;
 
 import com.example.wstest.dto.ChatMessage;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChatRoom {
     private String roomId;
     private String name;
+
+    @JsonIgnore
     private Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
 
     @Builder
