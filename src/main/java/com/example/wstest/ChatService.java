@@ -114,6 +114,7 @@ public class ChatService {
         fileMessage.setRoomId(roomId);
         fileMessage.setSender(username);
         fileMessage.setFileName(fileInfo.getOriginalFileName());
+        fileMessage.setSavedFileName(fileInfo.getSavedFileName()); // 서버에 저장된 파일명 추가
         fileMessage.setFileUrl(fileInfo.getFileUrl());
         fileMessage.setFileSize(fileInfo.getFileSize());
         fileMessage.setFileMimeType(fileInfo.getMimeType());

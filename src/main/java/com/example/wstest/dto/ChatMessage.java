@@ -25,12 +25,13 @@ public class ChatMessage {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private Date timestamp;
 
+
     // 파일 관련 필드
+    private String savedFileName; // 서버에 저장된 파일명
     private String fileName;
     private String fileUrl;
     private long fileSize;
     private String fileMimeType;
-
     // 파일 크기 포맷팅
     public String getFormattedFileSize() {
         if (fileSize < 1024) {
