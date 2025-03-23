@@ -1,5 +1,6 @@
 package com.example.wstest.config;
 
+import com.example.wstest.auth.AuthHandshakeInterceptor;
 import com.example.wstest.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +27,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(webSocketHandler, "/ws/chat")
-                .addInterceptors(new AuthHandshakeInterceptor(jwtTokenProvider))
+                .addInterceptors(new com.example.wstest.auth.AuthHandshakeInterceptor(jwtTokenProvider))
                 .setAllowedOrigins("*");
 
         log.info("WebSocket handler registered at /ws/chat");

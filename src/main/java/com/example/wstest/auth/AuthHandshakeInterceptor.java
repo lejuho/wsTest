@@ -46,6 +46,7 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
             log.info("Token validated successfully");
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
+            attributes.put("authenticated", true); // Add this line
             attributes.put("user", auth.getPrincipal());
             return true;
         } else {
