@@ -27,18 +27,25 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String payload = message.getPayload();
         log.info("Received message: {}", payload);
 
+        // Check authentication first
+        Map<String, Object> attributes = session.getAttributes();
+        Boolean authenticated = (Boolean) attributes.get("authenticated");
+        if (authenticated != null && !authenticated) {
+            sendErrorMessage(session, "인증에 실패했습니다. 다시 로그인해주세요.");
+            return;
+        }
+
         try {
             ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
 
-            // 인증된 사용자 정보 가져오기
-            Map<String, Object> attributes = session.getAttributes();
+            // Get authenticated user
             UserDetails userDetails = (UserDetails) attributes.get("user");
 
             if (userDetails != null) {
                 chatMessage.setSender(userDetails.getUsername());
                 log.info("Authenticated user: {}", userDetails.getUsername());
 
-                // 타임스탬프가 없으면 현재 시간 설정
+                // Set timestamp if not present
                 if (chatMessage.getTimestamp() == null) {
                     chatMessage.setTimestamp(new Date());
                 }
@@ -55,7 +62,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 sendErrorMessage(session, "인증된 사용자가 아닙니다.");
             }
         } catch (Exception e) {
-            log.error("메시지 처리 중 오류 발생: {}", e.getMessage());
+            log.error("메시지 처리 중 오류 발생: {}", e.getMessage(), e);
             sendErrorMessage(session, "메시지 처리 중 오류가 발생했습니다.");
         }
     }
