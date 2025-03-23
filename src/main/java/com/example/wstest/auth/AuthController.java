@@ -53,6 +53,6 @@ public class AuthController {
         userRepository.save(user);
 
         String jwt = jwtTokenProvider.createToken(signupRequest.getUsername());
-        return ResponseEntity.ok(new AuthResponse(jwt, signupRequest.getUsername()));
+        return ResponseEntity.ok().build();
     }
 }

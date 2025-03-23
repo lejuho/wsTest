@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/chat")
-public class ChatController {
+public class  ChatController {
     private final ChatService chatService;
 
     @PostMapping
@@ -43,7 +43,7 @@ public class ChatController {
 
     // 파일 업로드 API - 채팅방별 구현
     @PostMapping("/{roomId}/upload")
-    public ResponseEntity<ChatMessage> uploadFile(
+    public ResponseEntity<String> uploadFile(
             @PathVariable String roomId,
             @RequestParam("file") MultipartFile file,
             @AuthenticationPrincipal UserDetails userDetails) {
@@ -53,7 +53,7 @@ public class ChatController {
             }
 
             ChatMessage fileMessage = chatService.uploadFile(roomId, file, userDetails.getUsername());
-            return ResponseEntity.ok(fileMessage);
+            return ResponseEntity.ok(fileMessage.getSavedFileName());
         } catch (IOException e) {
             log.error("파일 업로드 실패: {}", e.getMessage());
             return ResponseEntity.badRequest().body(null);
