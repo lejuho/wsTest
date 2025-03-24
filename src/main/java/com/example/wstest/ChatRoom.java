@@ -66,9 +66,4 @@ public class ChatRoom {
         chatService.sendMessage(message);
     }
 
-    // 병렬 스트림 활용 전송 메서드 (대규모 채팅방에 효율적)
-    public void sendMessage(ChatMessage message, ChatService chatService) {
-        // ChatService의 sendMessage를 한 번만 호출하도록 수정
-        chatService.sendMessage(message);
-    }
 }

@@ -1,6 +1,7 @@
 package com.example.wstest;
 
 import com.example.wstest.dto.ChatMessage;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,15 +44,32 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     @Override
-    public void handleTextMessage(WebSocketSession session, TextMessage message) {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        String payload = message.getPayload();
+        log.info("Received WebSocket message: {}", payload);
+
         try {
-            ChatMessage chatMessage = objectMapper.readValue(message.getPayload(), ChatMessage.class);
-            chatService.sendMessage(chatMessage);
-        } catch (Exception e) {
-            log.error("메시지 처리 중 오류 발생", e);
-            sendErrorMessage(session, "MESSAGE_ERROR", "메시지 처리 중 오류가 발생했습니다: " + e.getMessage());
+            // JSON인지 확인 후 처리
+            if (isValidJson(payload)) {
+                ChatMessage chatMessage = objectMapper.readValue(payload, ChatMessage.class);
+                chatService.sendMessage(chatMessage);
+            } else {
+                log.warn("Invalid JSON received: {}", payload);
+            }
+        } catch (JsonProcessingException e) {
+            log.error("JSON parsing error: {}", e.getMessage());
         }
     }
+
+    private boolean isValidJson(String str) {
+        try {
+            objectMapper.readTree(str);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
