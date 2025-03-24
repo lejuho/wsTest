@@ -14,8 +14,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
-
-
 import java.util.Base64;
 import java.util.Date;
 
@@ -50,12 +48,20 @@ public class JwtTokenProvider {
     }
 
     public Authentication getAuthentication(String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(getUsername(token));
+        UserDetails userDetails = getUserDetails(getUsername(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    public UserDetails getUserDetails(String username) {
+        return userDetailsService.loadUserByUsername(username);
     }
 
     public String getUsername(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public String getUsernameFromToken(String token) {
+        return getUsername(token);
     }
 
     public String resolveToken(HttpServletRequest request) {

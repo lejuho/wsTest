@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws-stomp/**").permitAll()
                         .requestMatchers("/chat").authenticated()
                         .anyRequest().authenticated()
                 )

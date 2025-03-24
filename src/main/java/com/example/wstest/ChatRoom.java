@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -51,7 +50,7 @@ public class ChatRoom {
         new Thread(() -> {
             try {
                 for (ChatMessage prevMsg : chatService.getPreviousMessages(roomId)) {
-                    chatService.sendMessage(session, prevMsg);
+                    chatService.sendMessage(prevMsg);
                     // 너무 빠른 메시지 전송 방지를 위한 짧은 대기
                     Thread.sleep(20);
                 }
@@ -62,27 +61,14 @@ public class ChatRoom {
     }
 
     // 모든 세션에 메시지 전송 - 동시성 처리 개선
-    public <T> void sendMessageToAll(T message, ChatService chatService) {
-        // ConcurrentHashMap.newKeySet()을 사용하므로 복사 불필요
-        sessions.forEach(session -> {
-            try {
-                chatService.sendMessage(session, message);
-            } catch (IOException e) {
-                log.warn("메시지 전송 실패. 세션 제거: {}", session.getId());
-                sessions.remove(session);
-            }
-        });
+    public void sendMessageToAll(ChatMessage message, ChatService chatService) {
+        // ChatService의 sendMessage를 한 번만 호출하도록 수정
+        chatService.sendMessage(message);
     }
 
     // 병렬 스트림 활용 전송 메서드 (대규모 채팅방에 효율적)
-    public <T> void sendMessage(T message, ChatService chatService) {
-        sessions.parallelStream().forEach(session -> {
-            try {
-                chatService.sendMessage(session, message);
-            } catch (IOException e) {
-                log.warn("병렬 메시지 전송 실패. 세션 제거: {}", session.getId());
-                sessions.remove(session);
-            }
-        });
+    public void sendMessage(ChatMessage message, ChatService chatService) {
+        // ChatService의 sendMessage를 한 번만 호출하도록 수정
+        chatService.sendMessage(message);
     }
 }
